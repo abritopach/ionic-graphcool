@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { IonicPage, NavController, NavParams } from 'ionic-angular';
+import { IonicPage, NavController, NavParams, ModalController } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';  
 import { ShoppingListProvider } from '../../providers/shopping-list/shopping-list';
 
@@ -19,7 +19,8 @@ export class ItemsPage {
 
   items$: Observable<any>;
 
-  constructor(public navCtrl: NavController, public navParams: NavParams, public shoppingList: ShoppingListProvider) {
+  constructor(public navCtrl: NavController, public navParams: NavParams, public shoppingList: ShoppingListProvider,
+              public modalCtrl: ModalController) {
 
     const category = navParams.get("category");
 
@@ -29,11 +30,24 @@ export class ItemsPage {
     else {
       this.items$ = shoppingList.getAllItems()
     }
-    
+
   }
 
   ionViewDidLoad() {
     console.log('ionViewDidLoad ItemsPage');
+  }
+
+  toggle(item) {  
+    this.shoppingList.toggleItem(item);
+  }
+  
+  goToAddItem() {  
+    const modal = this.modalCtrl.create('NewItemPage');
+    modal.present();
+  }
+  
+  delete(item) {  
+    this.shoppingList.deleteItem(item);
   }
 
 }
