@@ -5,6 +5,10 @@ import { Observable } from 'rxjs/Observable';
 
 import { Apollo } from 'apollo-angular';  
 import gql from 'graphql-tag';
+import { Query } from '@angular/compiler/src/core';
+import { QueryRef } from 'apollo-angular/QueryRef';
+
+// QUERIES.
 
 const queryAllItems = gql`  
   query allItems {
@@ -27,6 +31,8 @@ const queryAllCategories = gql`
     }
   }
 `;
+
+// MUTATIONS.
 
 const mutationToggleItem = gql`  
   mutation($id: ID!, $done: Boolean) {
@@ -65,6 +71,25 @@ mutation($id: ID!) {
 }
 `;
 
+// SUBSCRIPTIONS
+
+const subscriptionNewItem = gql`
+subscription newItem {
+  Item(
+    filter: {
+      mutation_in: [CREATED]
+    }
+  ) {
+    mutation
+    node {
+      id
+      name
+    }
+  }
+}
+`;
+
+
 /*
   Generated class for the ShoppingListProvider provider.
 
@@ -83,6 +108,8 @@ export class ShoppingListProvider {
       query: queryAllItems
     });
 
+    this.subscriptionNewItem(queryWatcher);
+
     return queryWatcher.valueChanges
       .map(result => result.data.allItems);
   }
@@ -91,7 +118,6 @@ export class ShoppingListProvider {
     const queryWatcher = this.apollo.watchQuery<any>({
       query: queryAllCategories
     });
-  
     return queryWatcher.valueChanges
       .map(result => result.data.allCategories);
   }
@@ -155,6 +181,36 @@ export class ShoppingListProvider {
     })
     .subscribe(response => console.log(response.data),
                error => console.log('Mutation Error:', error));
+  }
+
+  /*
+  subscriptionNewItem(): Observable<any> {
+    return this.apollo
+      .subscribe({
+        query: subscriptionNewItem
+      });
+  }
+  */
+
+  public subscriptionNewItem(queryWatcher: QueryRef<any>) {
+    queryWatcher.subscribeToMore({
+      document: subscriptionNewItem,
+      updateQuery: (prev, { subscriptionData }) => {
+        if (!subscriptionData.data) {
+          console.log("prev", prev);
+          return prev;
+        }
+
+        const newItem = subscriptionData.data.Item.node;
+
+        console.log(Object.assign({}, prev, {
+          allItems: [...prev['allItems'], newItem]
+        }));
+        return Object.assign({}, prev, {
+          allItems: [...prev['allItems'], newItem]
+        })
+      }
+    });
   }
 
 }

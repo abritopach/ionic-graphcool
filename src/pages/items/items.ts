@@ -25,16 +25,29 @@ export class ItemsPage {
     const category = navParams.get("category");
 
     if (category) {
-      this.items$ = shoppingList.getItems(category);
+      this.items$ = this.shoppingList.getItems(category);
     }
     else {
-      this.items$ = shoppingList.getAllItems()
+      this.items$ = this.shoppingList.getAllItems();
+      console.log("items$", this.items$);
     }
 
   }
 
   ionViewDidLoad() {
     console.log('ionViewDidLoad ItemsPage');
+
+    /*
+    this.itemSubscription = this.shoppingList.subscriptionNewItem()
+      .subscribe(({ data }) => {
+        console.log(data);
+      });
+      */
+  }
+
+  ionViewWillUnload() {
+    console.log('ionViewWillUnload ItemsPage');
+    //this.itemSubscription.unsubscribe();
   }
 
   toggle(item) {  
