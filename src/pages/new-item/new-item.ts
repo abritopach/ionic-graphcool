@@ -31,7 +31,8 @@ export class NewItemPage {
   }
 
   save(){
-    this.shoppingList.createItem(this.name, this.categoryId);
+    this.shoppingList.createItem(this.name, this.categoryId).subscribe(response => console.log(response.data),
+    error => console.log('Mutation Error:', error));
     this.viewCtrl.dismiss();
   }
 

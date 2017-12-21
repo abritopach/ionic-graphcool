@@ -147,7 +147,8 @@ export class ShoppingListProvider {
                error => console.log('Mutation Error:', error));
   }
 
-  public createItem(name, categoryId): void {  
+  public createItem(name, categoryId): Observable<any> {  
+    /*
     this.apollo.mutate({
       mutation: mutationCreateItem,
       variables: {
@@ -168,6 +169,14 @@ export class ShoppingListProvider {
     })
     .subscribe(response => console.log(response.data),
                error => console.log('Mutation Error:', error));
+    */
+    return this.apollo.mutate({
+    mutation: mutationCreateItem,
+    variables: {
+        name: name,
+        categoryId: categoryId
+      },
+    });
   }
 
   public deleteItem(item: any): void {  
