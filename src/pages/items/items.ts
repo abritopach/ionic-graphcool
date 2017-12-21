@@ -1,7 +1,9 @@
 import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams, ModalController } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';  
+import { Subscription } from 'rxjs/Subscription';
 import { ShoppingListProvider } from '../../providers/shopping-list/shopping-list';
+import { QueryRef } from 'apollo-angular/QueryRef';
 
 /**
  * Generated class for the ItemsPage page.
@@ -18,6 +20,8 @@ import { ShoppingListProvider } from '../../providers/shopping-list/shopping-lis
 export class ItemsPage {
 
   items$: Observable<any>;
+  queryAllItems: QueryRef<any>;
+  itemSubscription: Subscription;
 
   constructor(public navCtrl: NavController, public navParams: NavParams, public shoppingList: ShoppingListProvider,
               public modalCtrl: ModalController) {
@@ -29,13 +33,24 @@ export class ItemsPage {
     }
     else {
       this.items$ = this.shoppingList.getAllItems();
-      console.log("items$", this.items$);
     }
 
   }
 
   ionViewDidLoad() {
     console.log('ionViewDidLoad ItemsPage');
+
+    this.queryAllItems = this.shoppingList.queryAllItems();
+
+    this.itemSubscription = this.queryAllItems.valueChanges.subscribe(
+        ({ data }) => {
+          //console.log(data);
+          //this.x = [...data.allItems];
+          //console.log(this.x);
+        }
+      );
+
+      this.shoppingList.subscribeToNewItem(this.queryAllItems);
 
     /*
     this.itemSubscription = this.shoppingList.subscriptionNewItem()
@@ -47,7 +62,7 @@ export class ItemsPage {
 
   ionViewWillUnload() {
     console.log('ionViewWillUnload ItemsPage');
-    //this.itemSubscription.unsubscribe();
+    this.itemSubscription.unsubscribe();
   }
 
   toggle(item) {  

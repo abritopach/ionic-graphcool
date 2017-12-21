@@ -84,6 +84,10 @@ subscription newItem {
     node {
       id
       name
+      done
+      category {
+        id
+      }
     }
   }
 }
@@ -107,11 +111,15 @@ export class ShoppingListProvider {
     const queryWatcher = this.apollo.watchQuery<any>({
       query: queryAllItems
     });
-
-    this.subscriptionNewItem(queryWatcher);
-
     return queryWatcher.valueChanges
       .map(result => result.data.allItems);
+  }
+
+  public queryAllItems(): QueryRef<any> {
+    const queryWatcher = this.apollo.watchQuery<any>({
+      query: queryAllItems
+    });
+    return queryWatcher;
   }
 
   public getAllCategories() : Observable<any> {  
@@ -139,7 +147,7 @@ export class ShoppingListProvider {
                error => console.log('Mutation Error:', error));
   }
 
-  createItem(name, categoryId): void {  
+  public createItem(name, categoryId): void {  
     this.apollo.mutate({
       mutation: mutationCreateItem,
       variables: {
@@ -162,7 +170,7 @@ export class ShoppingListProvider {
                error => console.log('Mutation Error:', error));
   }
 
-  deleteItem(item: any): void {  
+  public deleteItem(item: any): void {  
     this.apollo.mutate({
       mutation: mutationDeleteItem,
       variables: {
@@ -192,20 +200,14 @@ export class ShoppingListProvider {
   }
   */
 
-  public subscriptionNewItem(queryWatcher: QueryRef<any>) {
+  public subscribeToNewItem(queryWatcher: QueryRef<any>) {
     queryWatcher.subscribeToMore({
       document: subscriptionNewItem,
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData.data) {
-          console.log("prev", prev);
           return prev;
         }
-
         const newItem = subscriptionData.data.Item.node;
-
-        console.log(Object.assign({}, prev, {
-          allItems: [...prev['allItems'], newItem]
-        }));
         return Object.assign({}, prev, {
           allItems: [...prev['allItems'], newItem]
         })
