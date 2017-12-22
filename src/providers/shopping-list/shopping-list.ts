@@ -34,6 +34,7 @@ const queryAllCategories = gql`
 
 // MUTATIONS.
 
+// Mutation query update item.
 const mutationToggleItem = gql`  
   mutation($id: ID!, $done: Boolean) {
     updateItem(
@@ -46,6 +47,7 @@ const mutationToggleItem = gql`
   }
 `;
 
+// Mutation query create item.
 const mutationCreateItem = gql`  
 mutation($name: String!, $categoryId: ID) {  
   createItem(
@@ -63,6 +65,7 @@ mutation($name: String!, $categoryId: ID) {
 }
 `;
 
+// Mutation query delete item.
 const mutationDeleteItem = gql`  
 mutation($id: ID!) {  
   deleteItem(id: $id) {
@@ -135,7 +138,21 @@ export class ShoppingListProvider {
       .map(data => data.filter(i => i.category && i.category.id == category.id));
   }
 
-  public toggleItem(item: any): void {  
+
+  /*
+    We don't need to manually update our in-memory cache because Apollo Client takes care of that for us. We defined in our mutation that the
+    backend should send us back the id and the done properties. Apollo Client will automatically identify the item in the cache by the id and
+    subsequently update the done property.
+  */
+  public toggleItem(item: any): Observable<any> {  
+    return this.apollo.mutate({
+      mutation: mutationToggleItem,
+      variables: {
+        id: item.id,
+        done: !item.done
+      }
+    });
+    /*
     this.apollo.mutate({
       mutation: mutationToggleItem,
       variables: {
@@ -145,6 +162,7 @@ export class ShoppingListProvider {
     })
     .subscribe(response => console.log(response.data),
                error => console.log('Mutation Error:', error));
+               */
   }
 
   public createItem(name, categoryId): Observable<any> {  
@@ -175,12 +193,16 @@ export class ShoppingListProvider {
     variables: {
         name: name,
         categoryId: categoryId
-      },
+      }
     });
   }
 
-  public deleteItem(item: any): void {  
-    this.apollo.mutate({
+  /*
+  Notice the update function where the cache is updated for the allItems query. We have to manually update the cache now to add the new item, 
+  Apollo Client does not do that automatically for you in the case of an insert or delete.
+  */
+  public deleteItem(item: any): Observable<any> {  
+    return this.apollo.mutate({
       mutation: mutationDeleteItem,
       variables: {
         id: item.id
@@ -196,8 +218,10 @@ export class ShoppingListProvider {
         proxy.writeQuery({ query: queryAllItems, data });
       }
     })
+    /*
     .subscribe(response => console.log(response.data),
                error => console.log('Mutation Error:', error));
+    */
   }
 
   /*

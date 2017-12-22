@@ -66,7 +66,8 @@ export class ItemsPage {
   }
 
   toggle(item) {  
-    this.shoppingList.toggleItem(item);
+    this.shoppingList.toggleItem(item).subscribe(response => console.log(response.data),
+    error => console.log('Mutation Error:', error));
   }
   
   goToAddItem() {  
@@ -75,7 +76,8 @@ export class ItemsPage {
   }
   
   delete(item) {  
-    this.shoppingList.deleteItem(item);
+    this.shoppingList.deleteItem(item).subscribe(response => console.log(response.data),
+    error => console.log('Mutation Error:', error));
   }
 
 }
