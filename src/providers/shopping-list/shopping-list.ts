@@ -76,6 +76,14 @@ mutation($id: ID!) {
 
 // SUBSCRIPTIONS
 
+/*
+Subscriptions are a powerful GraphQL feature that make it easy to receive updates from a backend server in real time using a technology like 
+WebSockets on the frontend.
+*/
+
+/*
+Subscription query that we’ll run to automatically receive new todos created on the server.
+*/
 const subscriptionNewItem = gql`
 subscription newItem {
   Item(
@@ -233,6 +241,11 @@ export class ShoppingListProvider {
   }
   */
 
+
+  /*
+  subscribeToMore takes a query document (our subscription query), variables if needed and an update query function that gets the data from the
+  previous query and an object that contains our subscription data (subscriptionData).
+  */
   public subscribeToNewItem(queryWatcher: QueryRef<any>) {
     queryWatcher.subscribeToMore({
       document: subscriptionNewItem,

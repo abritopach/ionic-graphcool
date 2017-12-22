@@ -1,9 +1,10 @@
 import { Component } from '@angular/core';
-import { IonicPage, NavController, NavParams, ModalController } from 'ionic-angular';
+import { IonicPage, NavController, NavParams, ModalController, LoadingController } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';  
 import { Subscription } from 'rxjs/Subscription';
 import { ShoppingListProvider } from '../../providers/shopping-list/shopping-list';
 import { QueryRef } from 'apollo-angular/QueryRef';
+import { ItemModel } from '../../models/item.model';
 
 /**
  * Generated class for the ItemsPage page.
@@ -20,11 +21,12 @@ import { QueryRef } from 'apollo-angular/QueryRef';
 export class ItemsPage {
 
   items$: Observable<any>;
+  //items: ItemModel[] = [];
   queryAllItems: QueryRef<any>;
   itemSubscription: Subscription;
 
   constructor(public navCtrl: NavController, public navParams: NavParams, public shoppingList: ShoppingListProvider,
-              public modalCtrl: ModalController) {
+              public modalCtrl: ModalController, public loadingCtrl: LoadingController) {
 
     const category = navParams.get("category");
 
@@ -32,9 +34,24 @@ export class ItemsPage {
       this.items$ = this.shoppingList.getItems(category);
     }
     else {
-      this.items$ = this.shoppingList.getAllItems();
-    }
 
+      let loading = this.loadingCtrl.create({
+        content: "Loading Items..."
+      });
+
+      loading.present();
+
+      this.items$ = this.shoppingList.getAllItems();
+      this.items$.subscribe(
+        data => {
+            loading.dismiss();
+        },
+        error => {
+            console.log(<any>error);
+            loading.dismiss();
+        }
+      );
+    }
   }
 
   ionViewDidLoad() {
