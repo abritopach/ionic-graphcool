@@ -174,8 +174,7 @@ export class ShoppingListProvider {
   }
 
   public createItem(name, categoryId): Observable<any> {  
-    /*
-    this.apollo.mutate({
+    return this.apollo.mutate({
       mutation: mutationCreateItem,
       variables: {
         name: name,
@@ -193,16 +192,10 @@ export class ShoppingListProvider {
         proxy.writeQuery({ query: queryAllItems, data });
       }
     })
+    /*
     .subscribe(response => console.log(response.data),
                error => console.log('Mutation Error:', error));
     */
-    return this.apollo.mutate({
-    mutation: mutationCreateItem,
-    variables: {
-        name: name,
-        categoryId: categoryId
-      }
-    });
   }
 
   /*
@@ -254,9 +247,15 @@ export class ShoppingListProvider {
           return prev;
         }
         const newItem = subscriptionData.data.Item.node;
-        return Object.assign({}, prev, {
-          allItems: [...prev['allItems'], newItem]
-        })
+
+        // Add check to prevent double adding of items.
+        if (!prev['allItems'].find((item) => item.name === newItem.name)) {
+          return Object.assign({}, prev, {
+            allItems: [...prev['allItems'], newItem]
+          })
+        } else {
+          return prev;
+        }
       }
     });
   }
