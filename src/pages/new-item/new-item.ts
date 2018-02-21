@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { IonicPage, NavController, NavParams, ViewController } from 'ionic-angular';
+import { IonicPage, NavController, NavParams, ViewController, LoadingController } from 'ionic-angular';
 import { ShoppingListProvider } from '../../providers/shopping-list/shopping-list';  
 import { Observable } from 'rxjs/Observable';
 
@@ -22,7 +22,7 @@ export class NewItemPage {
   categoryId: string;
 
   constructor(public navCtrl: NavController, public navParams: NavParams, public viewCtrl: ViewController,
-    public shoppingList: ShoppingListProvider) {
+    public shoppingList: ShoppingListProvider, public loadingCtrl: LoadingController) {
       this.categories$ = this.shoppingList.getAllCategories();
   }
 
@@ -30,9 +30,19 @@ export class NewItemPage {
     console.log('ionViewDidLoad NewItemPage');
   }
 
-  save(){
-    this.shoppingList.createItem(this.name, this.categoryId).subscribe(response => console.log(response.data),
-    error => console.log('Mutation Error:', error));
+  save() {
+    let loading = this.loadingCtrl.create({
+      content: "Saving Item..."
+    });
+    loading.present();
+    this.shoppingList.createItem(this.name, this.categoryId).subscribe(response => {
+      console.log(response.data);
+      loading.dismiss();
+    },
+    error => {
+      console.log('Mutation Error:', error);
+      loading.dismiss();
+    });
     this.viewCtrl.dismiss();
   }
 

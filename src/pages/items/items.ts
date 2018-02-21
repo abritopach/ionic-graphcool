@@ -1,10 +1,7 @@
 import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams, ModalController, LoadingController } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';  
-import { Subscription } from 'rxjs/Subscription';
 import { ShoppingListProvider } from '../../providers/shopping-list/shopping-list';
-import { QueryRef } from 'apollo-angular/QueryRef';
-import { ItemModel } from '../../models/item.model';
 
 /**
  * Generated class for the ItemsPage page.
@@ -21,9 +18,6 @@ import { ItemModel } from '../../models/item.model';
 export class ItemsPage {
 
   items$: Observable<any>;
-  //items: ItemModel[] = [];
-  queryAllItems: QueryRef<any>;
-  itemSubscription: Subscription;
 
   constructor(public navCtrl: NavController, public navParams: NavParams, public shoppingList: ShoppingListProvider,
               public modalCtrl: ModalController, public loadingCtrl: LoadingController) {
@@ -54,37 +48,19 @@ export class ItemsPage {
     }
   }
 
-  ionViewDidLoad() {
-    console.log('ionViewDidLoad ItemsPage');
-
-    this.queryAllItems = this.shoppingList.queryAllItems();
-
-    this.itemSubscription = this.queryAllItems.valueChanges.subscribe(
-        ({ data }) => {
-          //console.log(data);
-          //this.x = [...data.allItems];
-          //console.log(this.x);
-        }
-      );
-
-      this.shoppingList.subscribeToNewItem(this.queryAllItems);
-
-    /*
-    this.itemSubscription = this.shoppingList.subscriptionNewItem()
-      .subscribe(({ data }) => {
-        console.log(data);
-      });
-      */
-  }
-
-  ionViewWillUnload() {
-    console.log('ionViewWillUnload ItemsPage');
-    this.itemSubscription.unsubscribe();
-  }
-
   toggle(item) {  
-    this.shoppingList.toggleItem(item).subscribe(response => console.log(response.data),
-    error => console.log('Mutation Error:', error));
+    let loading = this.loadingCtrl.create({
+      content: "Updating Item..."
+    });
+    loading.present();
+    this.shoppingList.toggleItem(item).subscribe(response => {
+      loading.dismiss();
+      console.log(response.data);
+    },
+    error => {
+      loading.dismiss();
+      console.log('Mutation Error:', error)
+    });
   }
   
   goToAddItem() {  
@@ -93,8 +69,17 @@ export class ItemsPage {
   }
   
   delete(item) {  
-    this.shoppingList.deleteItem(item).subscribe(response => console.log(response.data),
-    error => console.log('Mutation Error:', error));
-  }
-
+    let loading = this.loadingCtrl.create({
+      content: "Deleting Item..."
+    });
+    loading.present();
+    this.shoppingList.deleteItem(item).subscribe(response => {
+      loading.dismiss();
+      console.log(response.data)
+    },
+    error => {
+      loading.dismiss();
+      console.log('Mutation Error:', error)
+    }
+    )}
 }

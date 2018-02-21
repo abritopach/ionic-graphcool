@@ -82,13 +82,14 @@ WebSockets on the frontend.
 */
 
 /*
-Subscription query that we’ll run to automatically receive new todos created on the server.
+Subscription query that we’ll run to automatically receive new item created, updated and deleted on the server.
 */
-const subscriptionNewItem = gql`
-subscription newItem {
+
+const subscription = gql`  
+subscription changedItems {  
   Item(
     filter: {
-      mutation_in: [CREATED]
+      mutation_in: [CREATED, UPDATED, DELETED]
     }
   ) {
     mutation
@@ -99,6 +100,11 @@ subscription newItem {
       category {
         id
       }
+      createdAt
+      updatedAt
+    }
+    previousValues {
+      id
     }
   }
 }
@@ -122,6 +128,9 @@ export class ShoppingListProvider {
     const queryWatcher = this.apollo.watchQuery<any>({
       query: queryAllItems
     });
+
+    this.subscribeToChanges(queryWatcher);
+
     return queryWatcher.valueChanges
       .map(result => result.data.allItems);
   }
@@ -161,13 +170,6 @@ export class ShoppingListProvider {
       }
     });
     /*
-    this.apollo.mutate({
-      mutation: mutationToggleItem,
-      variables: {
-        id: item.id,
-        done: !item.done
-      }
-    })
     .subscribe(response => console.log(response.data),
                error => console.log('Mutation Error:', error));
                */
@@ -179,7 +181,8 @@ export class ShoppingListProvider {
       variables: {
         name: name,
         categoryId: categoryId
-      },
+      }
+      /*,
       update: (proxy, { data: { createItem } }) => {
   
         // Read the data from the cache for the allItems query
@@ -191,6 +194,7 @@ export class ShoppingListProvider {
         // Write the data back to the cache for the allItems query
         proxy.writeQuery({ query: queryAllItems, data });
       }
+      */
     })
     /*
     .subscribe(response => console.log(response.data),
@@ -207,7 +211,7 @@ export class ShoppingListProvider {
       mutation: mutationDeleteItem,
       variables: {
         id: item.id
-      },
+      }/*,
       update: (proxy, { data: { deleteItem } }) => {
         // Read the data from the cache for the allItems query
         let data: any = proxy.readQuery({ query: queryAllItems });
@@ -218,6 +222,7 @@ export class ShoppingListProvider {
         // Write the data back to the cache for the allItems query
         proxy.writeQuery({ query: queryAllItems, data });
       }
+      */
     })
     /*
     .subscribe(response => console.log(response.data),
@@ -226,35 +231,26 @@ export class ShoppingListProvider {
   }
 
   /*
-  subscriptionNewItem(): Observable<any> {
-    return this.apollo
-      .subscribe({
-        query: subscriptionNewItem
-      });
-  }
-  */
-
-
-  /*
   subscribeToMore takes a query document (our subscription query), variables if needed and an update query function that gets the data from the
   previous query and an object that contains our subscription data (subscriptionData).
   */
-  public subscribeToNewItem(queryWatcher: QueryRef<any>) {
+  private subscribeToChanges(queryWatcher: QueryRef<any>) {
     queryWatcher.subscribeToMore({
-      document: subscriptionNewItem,
+      document: subscription,
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData.data) {
           return prev;
         }
-        const newItem = subscriptionData.data.Item.node;
 
-        // Add check to prevent double adding of items.
-        if (!prev['allItems'].find((item) => item.name === newItem.name)) {
+        if (subscriptionData.data.Item.mutation == 'CREATED') {
           return Object.assign({}, prev, {
-            allItems: [...prev['allItems'], newItem]
-          })
-        } else {
-          return prev;
+            allItems: prev['allItems'].concat(subscriptionData.data.Item.node)
+          });
+        }
+        else if (subscriptionData.data.Item.mutation == 'DELETED') {
+          return Object.assign({}, prev, {
+            allItems: prev['allItems'].filter(i => i.id !== subscriptionData.data.Item.previousValues.id)
+          });
         }
       }
     });

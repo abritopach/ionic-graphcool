@@ -5,7 +5,7 @@ Sample project that shows a fullstack application where we will be building a sh
     * Frontend: Ionic.
     * Backend: GraphCool
 
-This project is an example created in the [Ashteya Biharisingh Blog](https://gonehybrid.com/how-to-build-an-ionic-app-with-a-graphcool-backend-part-1/)that have been modified by me. This project has been developed to practice my skills with the tech stack shown above. This project shows you how to:
+This project is an example created in the [Ashteya Biharisingh Blog](https://gonehybrid.com/how-to-build-an-ionic-app-with-a-graphcool-backend-part-1/) that have been modified by me. This project has been developed to practice my skills with the tech stack shown above. This project shows you how to:
 
     * Querying data.
     * Mutations.
